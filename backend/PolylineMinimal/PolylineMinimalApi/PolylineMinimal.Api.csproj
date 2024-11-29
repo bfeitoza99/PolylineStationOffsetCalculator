@@ -17,4 +17,10 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\PolylineMinimal.Application\PolylineMinimal.Application.csproj" />
+    <ProjectReference Include="..\PolylineMinimal.Infra\PolylineMinimal.Infra.csproj" />
+    <ProjectReference Include="..\PolylineMinimalDomain\PolylineMinimal.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
