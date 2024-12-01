@@ -5,9 +5,6 @@
 
 ---
 
-Feel free to contribute or raise issues in the repository. 😊
-
-
 # Polyline Station Offset Calculator
 
 This project calculates the offset and station of given points relative to a polyline using a backend built with .NET 8 and a frontend built with Angular.
@@ -69,6 +66,7 @@ dotnet run
 
 ## Project Structure
 
+<pre>
 polyline-station-offset-calculator/
 │
 ├── backend/            # Backend API built with .NET 8
@@ -77,4 +75,5 @@ polyline-station-offset-calculator/
 ├── polyline.xlsx       # Input file for polyline
 ├── docker-compose.yml  # Docker configuration file
 └── README.md           # Documentation
+</pre>
 
