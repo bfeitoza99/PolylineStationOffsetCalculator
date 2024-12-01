@@ -10,12 +10,12 @@ namespace PolylineMinimal.Infra.Repository
 {
     public class PolylineFileRepository : FileBaseRepository ,IPolylineFileRepository
     {
-        private readonly string _polylineFile = "polyline.csv";
+        private readonly string _polylineFile = "polyline.xlsx";
 
-        public async Task<List<Coordinate>> ReadPolylineAsync()
+        public  List<Coordinate> ReadPolyline()
         {
             var path = Path.Combine(_basePath, _polylineFile);
-            return await ReadCoordinatesFromFileAsync(path);
+            return ReadCoordinatesFromFile(path);
         }
     }
 }

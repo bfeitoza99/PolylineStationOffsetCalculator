@@ -1,12 +1,12 @@
 ﻿using PolylineMinimal.Domain.Interfaces.Repository;
 using PolylineMinimal.Domain.Interfaces.Service;
 using PolylineMinimal.Domain.Models;
+using System;
 
 namespace PolylineMinimal.Application.Service
 {
-    public  class OffSetStationService : IOffSetStationService
+    public class OffSetStationService : IOffSetStationService
     {
-
         private readonly IPolylineFileRepository _polylineRepository;
         private readonly IPointFileRepository _pointRepository;
 
@@ -16,13 +16,17 @@ namespace PolylineMinimal.Application.Service
             _pointRepository = pointRepository;
         }
 
-        public async Task<List<CalculationResult>> ProcessFilesAsync()
+        public List<CalculationResult> ProcessFiles()
         {
-            var polyline = await _polylineRepository.ReadPolylineAsync();
-            var points = await _pointRepository.ReadPointsAsync();
+            var polyline =  _polylineRepository.ReadPolyline();
+            var points =  _pointRepository.ReadPoints();
 
+            if (!ValidateInput(polyline, points))
+            {               
+                return new List<CalculationResult>();
+            }
 
-            return points.Select(point => CalculateOffsetAndStation(point, polyline)).ToList();
+            return points.Select(point => CalculateOffsetAndStation(point, polyline)).Where(result => result != null).ToList();
         }
 
         private CalculationResult CalculateOffsetAndStation(Coordinate point, List<Coordinate> polyline)
@@ -37,6 +41,11 @@ namespace PolylineMinimal.Application.Service
                 var segmentStart = polyline[i];
                 var segmentEnd = polyline[i + 1];
 
+                if (!ValidateSegment(segmentStart, segmentEnd))
+                {
+                    continue;
+                }
+
                 var (distance, projection) = CalculatePerpendicularDistance(segmentStart, segmentEnd, point);
 
                 if (distance < minOffset)
@@ -49,32 +58,57 @@ namespace PolylineMinimal.Application.Service
                 accumulatedDistance += CalculateDistance(segmentStart, segmentEnd);
             }
 
-            return new CalculationResult(minOffset, station, closestPoint);
-         
+            if (closestPoint == null)
+            {                
+                return null;
+            }          
+
+            return new CalculationResult(minOffset, station, closestPoint, point);
         }
 
-        private (double, Coordinate) CalculatePerpendicularDistance(Coordinate start, Coordinate end, Coordinate point)
+        private (double, Coordinate) CalculatePerpendicularDistance(Coordinate segmentStart, Coordinate segmentEnd, Coordinate targetPoint)
         {
-            double dx = end.X - start.X;
-            double dy = end.Y - start.Y;
-            double lengthSquared = dx * dx + dy * dy;
+            double segmentDeltaX = segmentEnd.X - segmentStart.X;
+            double segmentDeltaY = segmentEnd.Y - segmentStart.Y;
+            double segmentLengthSquared = segmentDeltaX * segmentDeltaX + segmentDeltaY * segmentDeltaY;
 
-            if (lengthSquared == 0) return (CalculateDistance(start, point), start);
+            if (segmentLengthSquared == 0)
+            {                
+                return (CalculateDistance(segmentStart, targetPoint), segmentStart);
+            }
 
-            double t = ((point.X - start.X) * dx + (point.Y - start.Y) * dy) / lengthSquared;
-            t = Math.Max(0, Math.Min(1, t));
+            double projectionScalar = ((targetPoint.X - segmentStart.X) * segmentDeltaX + (targetPoint.Y - segmentStart.Y) * segmentDeltaY) / segmentLengthSquared;
+            projectionScalar = Math.Max(0, Math.Min(1, projectionScalar));
 
-            var projection = new Coordinate(
-                start.X + t * dx,
-                start.Y + t * dy
+            var projectionPoint = new Coordinate(
+                segmentStart.X + projectionScalar * segmentDeltaX,
+                segmentStart.Y + projectionScalar * segmentDeltaY
             );
 
-            return (CalculateDistance(projection, point), projection);
+            return (CalculateDistance(projectionPoint, targetPoint), projectionPoint);
         }
 
         private double CalculateDistance(Coordinate a, Coordinate b)
         {
             return Math.Sqrt(Math.Pow(a.X - b.X, 2) + Math.Pow(a.Y - b.Y, 2));
+        }
+
+        private bool ValidateSegment(Coordinate start, Coordinate end)
+        {
+            if (start.X == end.X && start.Y == end.Y)
+            {               
+                return false;
+            }
+            return true;
+        }
+
+        private bool ValidateInput(List<Coordinate> polyline, List<Coordinate> points)
+        {
+            if (polyline == null || polyline.Count < 2 ||  points == null || points.Count == 0)
+            {               
+                return false;
+            }
+            return true;
         }
     }
 }

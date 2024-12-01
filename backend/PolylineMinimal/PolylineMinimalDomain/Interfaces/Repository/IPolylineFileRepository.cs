@@ -9,6 +9,6 @@ namespace PolylineMinimal.Domain.Interfaces.Repository
 {
     public interface IPolylineFileRepository
     {
-        Task<List<Coordinate>> ReadPolylineAsync();     
+        List<Coordinate> ReadPolyline();     
     }
 }

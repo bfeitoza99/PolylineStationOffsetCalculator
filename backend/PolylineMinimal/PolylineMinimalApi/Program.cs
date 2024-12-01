@@ -5,7 +5,15 @@ using PolylineMinimal.Infra.Repository;
 
 var builder = WebApplication.CreateBuilder(args);
 
-
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAllOrigins", builder =>
+    {
+        builder.AllowAnyOrigin() 
+               .AllowAnyMethod() 
+               .AllowAnyHeader(); 
+    });
+});
 
 builder.Services.AddTransient<IPointFileRepository, PointFileRepository>();
 builder.Services.AddTransient<IPolylineFileRepository, PolylineFileRepository>();
@@ -22,23 +30,23 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-
-app.MapGet("/polyline", async (IPolylineFileRepository service) =>
+app.UseCors("AllowAllOrigins");
+app.MapGet("/polyline",  (IPolylineFileRepository service) =>
 {
-    var results = await service.ReadPolylineAsync();
+    var results =  service.ReadPolyline();
     return Results.Ok(results);
 });
 
-app.MapGet("/points", async (IPointFileRepository service) =>
+app.MapGet("/points",  (IPointFileRepository service) =>
 {
-    var results = await service.ReadPointsAsync();
+    var results =  service.ReadPoints();
     return Results.Ok(results);
 });
 
 
-app.MapGet("/process", async (IOffSetStationService service) =>
+app.MapGet("/process",  (IOffSetStationService service) =>
 {
-    var results = await service.ProcessFilesAsync();
+    var results =  service.ProcessFiles();
     return Results.Ok(results);
 });
 

@@ -1,11 +1,8 @@
-﻿using CsvHelper.Configuration;
-using CsvHelper;
+﻿using OfficeOpenXml; // Biblioteca EPPlus
 using PolylineMinimal.Domain.Models;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.Linq;
-using System.Text;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace PolylineMinimal.Infra.Repository
@@ -14,26 +11,44 @@ namespace PolylineMinimal.Infra.Repository
     {
         protected readonly string _basePath = "../../../";
 
-        protected async Task<List<Coordinate>> ReadCoordinatesFromFileAsync(string path)
+        protected List<Coordinate> ReadCoordinatesFromFile(string path)
         {
-            using var reader = new StreamReader(path);
-            using var csv = new CsvReader(reader, new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                Delimiter = ",",
-                HasHeaderRecord = false,
-                MissingFieldFound = null
-            });
 
             var records = new List<Coordinate>();
 
-            await foreach (var record in csv.GetRecordsAsync<RawCoordinate>())
+            ExcelPackage.LicenseContext = LicenseContext.NonCommercial;
+
+            using var package = new ExcelPackage(new FileInfo(path));
+            var worksheet = package.Workbook.Worksheets[0];
+
+            for (int row = 1; row <= worksheet.Dimension.End.Row; row++)
             {
 
-                if (record.X != null && record.Y != null) records.Add(new Coordinate(record.X.Value, record.Y.Value));       
+                var values = worksheet.Cells[row, 1].Value.ToString();
 
+                if (string.IsNullOrEmpty(values))
+                    continue;
+
+                var splittedValues = values.Split(",");
+
+                if (splittedValues.Length < 2)
+                    continue;
+
+                var xValue = splittedValues[0];
+                var yValue = splittedValues[1];
+
+                if (xValue != null && yValue != null)
+                {
+                    if (double.TryParse(xValue.ToString(), out var x) &&
+                        double.TryParse(yValue.ToString(), out var y))
+                    {
+                        records.Add(new Coordinate(x, y));
+                    }
+                }
             }
 
             return records;
+
         }
     }
 }
