@@ -3,7 +3,12 @@ using PolylineMinimal.Domain.Interfaces.Repository;
 using PolylineMinimal.Domain.Interfaces.Service;
 using PolylineMinimal.Infra.Repository;
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(new WebApplicationOptions
+{
+    EnvironmentName = Environments.Production,
+    ContentRootPath = Directory.GetCurrentDirectory(),
+    WebRootPath = string.Empty 
+});
 
 builder.Services.AddCors(options =>
 {
@@ -26,7 +31,6 @@ if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
 }
-app.UseStaticFiles();
 
 app.UseRouting();
 

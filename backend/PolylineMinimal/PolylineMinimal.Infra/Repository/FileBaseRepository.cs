@@ -9,7 +9,12 @@ namespace PolylineMinimal.Infra.Repository
 {
     public abstract class FileBaseRepository
     {
-        protected readonly string _basePath = "../../../";
+        protected readonly string _basePath;
+
+        public FileBaseRepository()
+        {          
+            _basePath = Environment.GetEnvironmentVariable("BASE_PATH") ?? "./";
+        }
 
         protected List<Coordinate> ReadCoordinatesFromFile(string path)
         {

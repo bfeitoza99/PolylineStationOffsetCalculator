@@ -1,0 +1,21 @@
+version: '3.9'
+
+services:
+  backend:
+    build:
+      context: ./backend/PolylineMinimal
+      dockerfile: Dockerfile
+    volumes:
+      - ./points.xlsx:/app/points.xlsx:rw
+      - ./polyline.xlsx:/app/polyline.xlsx:rw
+    ports:
+      - "8001:8080"
+    environment:
+      BASE_PATH: "./"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"

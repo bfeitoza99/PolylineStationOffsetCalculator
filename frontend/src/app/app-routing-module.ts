@@ -3,7 +3,7 @@ import { RouterModule, Routes } from '@angular/router';
 import { GraphComponent } from './graph/graph.component';
 
 const routes: Routes = [
-  { path: 'graph', component: GraphComponent }
+  { path: '', component: GraphComponent }
 ];
 
 @NgModule({
